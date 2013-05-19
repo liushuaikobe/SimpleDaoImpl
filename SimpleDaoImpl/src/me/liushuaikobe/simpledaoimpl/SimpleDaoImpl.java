@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -153,6 +154,13 @@ public abstract class SimpleDaoImpl<T, K> {
 						} catch (ParseException e) {
 							e.printStackTrace();
 						}
+					} else if (fieldType.getName().equals(
+							java.sql.Date.class.getName())) { // java.sql.date
+						setter.invoke(entity,
+								java.sql.Date.valueOf(c.getString(i)));
+					} else if (fieldType.getName().equals(Time.class.getName())) { // java.sql.Time
+						setter.invoke(entity,
+								java.sql.Time.valueOf(c.getString(i)));
 					}
 				}
 			}
