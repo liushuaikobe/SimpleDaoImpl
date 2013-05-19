@@ -6,7 +6,7 @@ package me.liushuaikobe.simpledaoimplexample.entity;
 import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Date;
+import java.sql.Date;
 
 /**
  * @author liushuai

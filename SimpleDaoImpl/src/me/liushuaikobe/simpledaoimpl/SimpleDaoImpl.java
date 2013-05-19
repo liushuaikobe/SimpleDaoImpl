@@ -10,8 +10,6 @@ import java.lang.reflect.ParameterizedType;
 import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
 
 import me.liushuaikobe.simpledaoimpl.db.SimpleDBManager;
 import me.liushuaikobe.simpledaoimpl.db.SimpleDBManagerFactory;
@@ -57,29 +55,23 @@ public abstract class SimpleDaoImpl<T, K> {
 	 * 
 	 * @param entity
 	 */
-	@SuppressWarnings("unchecked")
-	public void saveOrUpdate(T entity) {
+	public void save(T entity) {
 		Class<?> clazz = entity.getClass();
 		try {
-			Method method = clazz.getMethod(Util.getGettersName(PK_name));
-			K pkVar = (K) method.invoke(clazz.newInstance());
 			Field[] fields = clazz.getDeclaredFields();
 			db.beginTransaction();
 			ContentValues values = new ContentValues();
-			if (pkVar != null) { // 主键不存在，create
-				values.put(PK_name, pkVar.toString());
-			}
 			Method getter = null;
 			String fieldName = null;
 			for (Field field : fields) {
 				fieldName = field.getName();
-				if (fieldName.equals(PK_name)) {
+				if (fieldName.equals(PK_name)) { // ignore the given pk value
 					continue;
 				}
 				getter = clazz.getMethod(Util.getGettersName(fieldName));
 				values.put(field.getName(), getter.invoke(entity).toString());
 			}
-			db.replace(TABLE_name, null, values);
+			db.insert(TABLE_name, null, values);
 			db.setTransactionSuccessful();
 			db.endTransaction();
 		} catch (NoSuchMethodException e) {
@@ -92,7 +84,37 @@ public abstract class SimpleDaoImpl<T, K> {
 			e.printStackTrace();
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
-		} catch (InstantiationException e) {
+		}
+	}
+
+	/**
+	 * 更新实体，如果表中不存在entity主键对应的实体，则向表中插入新的数据
+	 * 
+	 * @param entity
+	 */
+	public void update(T entity) {
+		Class<?> clazz = entity.getClass();
+		try {
+			Field[] fields = clazz.getDeclaredFields();
+			db.beginTransaction();
+			ContentValues values = new ContentValues();
+			Method getter = null;
+			String fieldName = null;
+			for (Field field : fields) {
+				fieldName = field.getName();
+				getter = clazz.getMethod(Util.getGettersName(fieldName));
+				values.put(field.getName(), getter.invoke(entity).toString());
+			}
+			db.replace(TABLE_name, null, values);
+			db.setTransactionSuccessful();
+			db.endTransaction();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
 	}
@@ -147,14 +169,6 @@ public abstract class SimpleDaoImpl<T, K> {
 							Timestamp.class.getName())) { // TimeStamp
 						setter.invoke(entity, Timestamp.valueOf(c.getString(i)));
 					} else if (fieldType.getName().equals(
-							java.util.Date.class.getName())) { // java.util.date
-						try {
-							setter.invoke(entity, DateFormat.getInstance()
-									.parse(c.getString(i)));
-						} catch (ParseException e) {
-							e.printStackTrace();
-						}
-					} else if (fieldType.getName().equals(
 							java.sql.Date.class.getName())) { // java.sql.date
 						setter.invoke(entity,
 								java.sql.Date.valueOf(c.getString(i)));
@@ -192,6 +206,20 @@ public abstract class SimpleDaoImpl<T, K> {
 		db.setTransactionSuccessful();
 		db.endTransaction();
 		return l;
+	}
+
+	/**
+	 * 返回表中记录个数
+	 * 
+	 * @return
+	 */
+	public int getEntitiesCount() {
+		Cursor c = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_name, null);
+		int count = 0;
+		if (c.moveToNext()) {
+			count = c.getInt(0);
+		}
+		return count;
 	}
 
 	public SimpleDBManager getDbManager() {

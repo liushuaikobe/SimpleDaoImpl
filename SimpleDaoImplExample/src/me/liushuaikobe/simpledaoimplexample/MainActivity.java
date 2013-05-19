@@ -3,7 +3,7 @@ package me.liushuaikobe.simpledaoimplexample;
 import java.math.BigInteger;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Date;
+import java.sql.Date;
 
 import me.liushuaikobe.simpledaoimpl.db.SimpleDBHelper.OnCreateDo;
 import me.liushuaikobe.simpledaoimpl.db.SimpleDBManagerFactory;
@@ -13,10 +13,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class MainActivity extends Activity {
 	private Context mContext = MainActivity.this;
+	private Button btnUpdate;
+	private Test_table_1 test_table_1_1;
+	private Test_table_1 test_table_1_2;
+	private Test_table_1 test_table_1_3;
+	private Test_table_1DAO test_table_1DAO;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -40,18 +49,47 @@ public class MainActivity extends Activity {
 						+ "test_time TIME NULL DEFAULT NULL" + ")");
 			}
 		});
-		Test_table_1DAO test_table_1DAO = new Test_table_1DAO(mContext);
-		Test_table_1 test_table_1 = new Test_table_1();
-		test_table_1.setTest_character("liushuaikobe");
-		test_table_1.setTest_text("zouliping");
-		test_table_1.setTest_double(3.1415926535);
-		test_table_1
-				.setTest_timestamp(new Timestamp(System.currentTimeMillis()));
-		test_table_1.setTest_integer(19910607);
-		test_table_1.setTest_biginteger(new BigInteger("1234567890"));
-		test_table_1.setTest_date(new Date());
-		test_table_1.setTest_time(new Time(System.currentTimeMillis()));
-		test_table_1DAO.saveOrUpdate(test_table_1);
+		test_table_1DAO = new Test_table_1DAO(mContext);
+
+		test_table_1_1 = new Test_table_1();
+		test_table_1_1.setTest_character("liushuaikobe");
+		test_table_1_1.setTest_text("zouliping");
+		test_table_1_1.setTest_double(3.1415926535);
+		test_table_1_1.setTest_timestamp(new Timestamp(System
+				.currentTimeMillis()));
+		test_table_1_1.setTest_integer(19910607);
+		test_table_1_1.setTest_biginteger(new BigInteger("1234567890"));
+		test_table_1_1.setTest_date(new Date(System.currentTimeMillis()));
+		test_table_1_1.setTest_time(new Time(System.currentTimeMillis()));
+
+		test_table_1DAO.save(test_table_1_1);
+		Log.e("fuck", test_table_1_1.getTest_pk() + "");
+
+		test_table_1_2 = new Test_table_1();
+		test_table_1_2.setTest_character("liushuaikobe--1");
+		test_table_1_2.setTest_text("zouliping--1");
+		test_table_1_2.setTest_double(3.1415926535);
+		test_table_1_2.setTest_timestamp(new Timestamp(System
+				.currentTimeMillis()));
+		test_table_1_2.setTest_integer(19930607);
+		test_table_1_2
+				.setTest_biginteger(new BigInteger("1234567890123456789"));
+		test_table_1_2.setTest_date(new Date(System.currentTimeMillis()));
+		test_table_1_2.setTest_time(new Time(System.currentTimeMillis()));
+		test_table_1DAO.save(test_table_1_2);
+
+		btnUpdate = (Button) findViewById(R.id.update);
+		btnUpdate.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				test_table_1_3 = test_table_1DAO.find(1);
+				Log.e("3-->pk", test_table_1_3.getTest_pk() + " ");
+				test_table_1_3.setTest_character("modify successfully");
+				test_table_1_3.setTest_biginteger(new BigInteger("9876543210"));
+				test_table_1DAO.update(test_table_1_3);
+			}
+		});
 	}
 
 	@Override
